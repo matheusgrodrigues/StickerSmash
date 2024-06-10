@@ -1,7 +1,9 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { useImperativeHandle, useCallback, forwardRef, useState, useRef } from "react";
+import { StyleSheet, Pressable, Image, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import * as ImagePicker from "expo-image-picker";
 
 const PlaceholderImage = require("./assets/images/background-image.png");
 
@@ -48,27 +50,39 @@ const styles = StyleSheet.create({
    },
 });
 
-const ImageViewer = ({ placeholderImageSource }) => {
-   return <Image source={placeholderImageSource} style={styles.container} />;
-};
+const ImageViewer = forwardRef(({ placeholderImageSource }, ref) => {
+   const [selectedImage, setSelectedImage] = useState(null);
 
-const PrimaryButton = ({ label }) => (
-   <View style={[styles.buttonContainer, { borderWidth: 4, borderColor: "#ffd33d", borderRadius: 18 }]}>
-      <Pressable style={[styles.button, { backgroundColor: "#fff" }]} onPress={() => alert("Você pressionou o botão.")}>
-         <FontAwesome name="picture-o" size={18} color="#25292e" style={styles.buttonIcon} />
+   console.log("imageViewr", selectedImage);
+
+   useImperativeHandle(
+      ref,
+      () => ({
+         setSelectedImage,
+      }),
+      []
+   );
+
+   return <Image source={selectedImage ? { uri: selectedImage } : placeholderImageSource} style={styles.image} />;
+});
+
+const PrimaryButton = ({ onPress, label }) => (
+   <View style={[styles.buttonContainer, { borderRadius: 18, borderWidth: 4, borderColor: "#ffd33d" }]}>
+      <Pressable onPress={onPress} style={[styles.button, { backgroundColor: "#fff" }]}>
+         <FontAwesome style={styles.buttonIcon} name="picture-o" size={18} color="#25292e" />
          <Text style={[styles.buttonLabel, { color: "#25292e" }]}>{label}</Text>
       </Pressable>
    </View>
 );
 
-const Button = ({ theme, label }) => {
+const Button = ({ onPress, theme, label }) => {
    return (
       <>
          {theme === "primary" ? (
-            <PrimaryButton label={label} />
+            <PrimaryButton onPress={onPress} label={label} />
          ) : (
             <View style={styles.buttonContainer}>
-               <Pressable style={styles.button} onPress={() => alert("Você pressionou o botão.")}>
+               <Pressable onPress={onPress} style={styles.button}>
                   <Text style={styles.buttonLabel}>{label}</Text>
                </Pressable>
             </View>
@@ -78,14 +92,29 @@ const Button = ({ theme, label }) => {
 };
 
 export default function App() {
+   const imageViewerRef = useRef(null);
+
+   const pickImageSync = useCallback(async () => {
+      let result = await ImagePicker.launchImageLibraryAsync({
+         allowsEditing: true,
+         quality: 1,
+      });
+
+      if (!result.canceled) {
+         imageViewerRef.current.setSelectedImage(result.assets[0].uri);
+      } else {
+         alert("Você não selecionou uma imagem!");
+      }
+   }, []);
+
    return (
       <View style={styles.container}>
          <View style={styles.imageContainer}>
-            <ImageViewer placeholderImageSource={PlaceholderImage} />
+            <ImageViewer placeholderImageSource={PlaceholderImage} ref={imageViewerRef} />
          </View>
 
          <View style={styles.footerContainer}>
-            <Button theme={"primary"} label={"Selecione a foto"} />
+            <Button onPress={pickImageSync} theme={"primary"} label={"Selecione a foto"} />
             <Button label={"Use esta foto"} />
          </View>
 
