@@ -23,12 +23,12 @@ const imageViewerStyles = StyleSheet.create({
 });
 
 interface ImageViewerRef {
-   setSelectedImage: React.Dispatch<React.SetStateAction<string>>;
+   setSelectedImage: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageViewerRef> & object> = forwardRef(
    (props, ref) => {
-      const [selectedImage, setSelectedImage] = useState("");
+      const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
       useImperativeHandle(
          ref,
