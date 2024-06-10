@@ -8,10 +8,6 @@ import * as ImagePicker from "expo-image-picker";
 const PlaceholderImage = require("./assets/images/background-image.png");
 
 const imageStyles = StyleSheet.create({
-   imageContainer: {
-      paddingTop: 58,
-      flex: 1,
-   },
    image: {
       borderRadius: 18,
       height: 440,
@@ -19,7 +15,14 @@ const imageStyles = StyleSheet.create({
    },
 });
 
-const ImageViewer = forwardRef(({ placeholderImageSource }, ref) => {
+const imageViewerStyles = StyleSheet.create({
+   container: {
+      paddingTop: 58,
+      flex: 1,
+   },
+});
+
+const ImageViewer = forwardRef((props, ref) => {
    const [selectedImage, setSelectedImage] = useState(null);
 
    useImperativeHandle(
@@ -30,11 +33,15 @@ const ImageViewer = forwardRef(({ placeholderImageSource }, ref) => {
       []
    );
 
-   return <Image source={selectedImage ? { uri: selectedImage } : placeholderImageSource} style={styles.image} />;
+   return (
+      <View style={imageViewerStyles.container}>
+         <Image source={selectedImage ? { uri: selectedImage } : PlaceholderImage} style={imageStyles.image} />
+      </View>
+   );
 });
 
 const buttonStyles = StyleSheet.create({
-   buttonContainer: {
+   container: {
       marginHorizontal: 20,
       justifyContent: "center",
       alignItems: "center",
@@ -42,7 +49,7 @@ const buttonStyles = StyleSheet.create({
       height: 68,
       width: 320,
    },
-   buttonLabel: {
+   label: {
       fontSize: 16,
       color: "#fff",
    },
@@ -58,29 +65,36 @@ const buttonStyles = StyleSheet.create({
 });
 
 const PrimaryButton = ({ onPress, label }) => (
-   <View style={[buttonStyles.buttonContainer, { borderRadius: 18, borderWidth: 4, borderColor: "#ffd33d" }]}>
+   <View style={[buttonStyles.container, { borderRadius: 18, borderWidth: 4, borderColor: "#ffd33d" }]}>
       <Pressable onPress={onPress} style={[buttonStyles.button, { backgroundColor: "#fff" }]}>
-         <FontAwesome style={buttonStyles.buttonIcon} name="picture-o" size={18} color="#25292e" />
-         <Text style={[buttonStyles.buttonLabel, { color: "#25292e" }]}>{label}</Text>
+         <FontAwesome color="#25292e" name="picture-o" size={18} />
+         <Text style={[buttonStyles.label, { color: "#25292e" }]}>{label}</Text>
       </Pressable>
    </View>
 );
 
-const Button = ({ onPress, theme, label }) => {
-   return (
-      <>
-         {theme === "primary" ? (
-            <PrimaryButton onPress={onPress} label={label} />
-         ) : (
-            <View style={buttonStyles.buttonContainer}>
-               <Pressable onPress={onPress} style={styles.button}>
-                  <Text style={buttonStyles.buttonLabel}>{label}</Text>
-               </Pressable>
-            </View>
-         )}
-      </>
-   );
-};
+const Button = ({ onPress, theme, label }) => (
+   <>
+      {theme === "primary" ? (
+         <PrimaryButton onPress={onPress} label={label} />
+      ) : (
+         <View style={buttonStyles.container}>
+            <Pressable onPress={onPress} style={styles.button}>
+               <Text style={buttonStyles.label}>{label}</Text>
+            </Pressable>
+         </View>
+      )}
+   </>
+);
+
+const footerStyles = StyleSheet.create({
+   container: {
+      alignItems: "center",
+      flex: 1 / 3,
+   },
+});
+
+const Footer = ({ children }) => <View style={footerStyles.container}>{children}</View>;
 
 const appStyles = StyleSheet.create({
    container: {
@@ -88,13 +102,6 @@ const appStyles = StyleSheet.create({
       justifyContent: "center",
       alignItems: "center",
       flex: 1,
-   },
-});
-
-const footerStyles = StyleSheet.create({
-   footerContainer: {
-      alignItems: "center",
-      flex: 1 / 3,
    },
 });
 
@@ -116,14 +123,12 @@ export default function App() {
 
    return (
       <View style={appStyles.container}>
-         <View style={imageStyles.imageContainer}>
-            <ImageViewer placeholderImageSource={PlaceholderImage} ref={imageViewerRef} />
-         </View>
+         <ImageViewer ref={imageViewerRef} />
 
-         <View style={footerStyles.footerContainer}>
+         <Footer>
             <Button onPress={pickImageSync} theme={"primary"} label={"Selecione a foto"} />
             <Button label={"Use esta foto"} />
-         </View>
+         </Footer>
 
          <StatusBar style="auto" />
       </View>
