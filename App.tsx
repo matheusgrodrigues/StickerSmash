@@ -1,4 +1,4 @@
-import { useImperativeHandle, useCallback, forwardRef, useState, useRef } from "react";
+import React, { useImperativeHandle, useCallback, forwardRef, useState, useRef } from "react";
 import { StyleSheet, Pressable, Image, Text, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 
@@ -22,23 +22,29 @@ const imageViewerStyles = StyleSheet.create({
    },
 });
 
-const ImageViewer = forwardRef((props, ref) => {
-   const [selectedImage, setSelectedImage] = useState(null);
+interface ImageViewerRef {
+   setSelectedImage: React.Dispatch<React.SetStateAction<string>>;
+}
 
-   useImperativeHandle(
-      ref,
-      () => ({
-         setSelectedImage,
-      }),
-      []
-   );
+const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageViewerRef> & object> = forwardRef(
+   (props, ref) => {
+      const [selectedImage, setSelectedImage] = useState("");
 
-   return (
-      <View style={imageViewerStyles.container}>
-         <Image source={selectedImage ? { uri: selectedImage } : PlaceholderImage} style={imageStyles.image} />
-      </View>
-   );
-});
+      useImperativeHandle(
+         ref,
+         () => ({
+            setSelectedImage,
+         }),
+         []
+      );
+
+      return (
+         <View style={imageViewerStyles.container}>
+            <Image source={selectedImage ? { uri: selectedImage } : PlaceholderImage} style={imageStyles.image} />
+         </View>
+      );
+   }
+);
 
 const buttonStyles = StyleSheet.create({
    container: {
@@ -64,7 +70,15 @@ const buttonStyles = StyleSheet.create({
    },
 });
 
-const PrimaryButton = ({ onPress, label }) => (
+interface ButtonProps {
+   label: string;
+   onPress?: () => Promise<void>;
+   theme?: string;
+}
+
+interface PrimaryButtonProps extends Omit<ButtonProps, "theme"> {}
+
+const PrimaryButton: React.FC<PrimaryButtonProps> = ({ onPress, label }) => (
    <View style={[buttonStyles.container, { borderRadius: 18, borderWidth: 4, borderColor: "#ffd33d" }]}>
       <Pressable onPress={onPress} style={[buttonStyles.button, { backgroundColor: "#fff" }]}>
          <FontAwesome color="#25292e" name="picture-o" size={18} />
@@ -73,13 +87,13 @@ const PrimaryButton = ({ onPress, label }) => (
    </View>
 );
 
-const Button = ({ onPress, theme, label }) => (
+const Button: React.FC<ButtonProps> = ({ onPress, theme, label }) => (
    <>
       {theme === "primary" ? (
          <PrimaryButton onPress={onPress} label={label} />
       ) : (
          <View style={buttonStyles.container}>
-            <Pressable onPress={onPress} style={styles.button}>
+            <Pressable onPress={onPress} style={buttonStyles.button}>
                <Text style={buttonStyles.label}>{label}</Text>
             </Pressable>
          </View>
@@ -94,7 +108,11 @@ const footerStyles = StyleSheet.create({
    },
 });
 
-const Footer = ({ children }) => <View style={footerStyles.container}>{children}</View>;
+interface FooterProps {
+   children: React.ReactNode;
+}
+
+const Footer: React.FC<FooterProps> = ({ children }) => <View style={footerStyles.container}>{children}</View>;
 
 const appStyles = StyleSheet.create({
    container: {
@@ -106,7 +124,7 @@ const appStyles = StyleSheet.create({
 });
 
 export default function App() {
-   const imageViewerRef = useRef(null);
+   const imageViewerRef = useRef<ImageViewerRef>(null);
 
    const pickImageSync = useCallback(async () => {
       let result = await ImagePicker.launchImageLibraryAsync({
@@ -115,7 +133,7 @@ export default function App() {
       });
 
       if (!result.canceled) {
-         imageViewerRef.current.setSelectedImage(result.assets[0].uri);
+         imageViewerRef.current?.setSelectedImage(result.assets[0].uri);
       } else {
          alert("Você não selecionou uma imagem!");
       }
