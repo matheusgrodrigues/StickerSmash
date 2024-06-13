@@ -1,31 +1,83 @@
 import React, { useImperativeHandle, useCallback, forwardRef, useState, useRef, useMemo } from "react";
 import { StyleSheet, Pressable, Image, Text, View, Modal, FlatList, Platform, ImageSourcePropType } from "react-native";
-
 import * as ImagePicker from "expo-image-picker";
 import { MaterialIcons } from "@expo/vector-icons";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 interface EmojiStickerRef {
    setStickerSource: React.Dispatch<React.SetStateAction<ImageSourcePropType | null>>;
 }
 
-const EmojiSticker: React.ForwardRefExoticComponent<React.RefAttributes<EmojiStickerRef> & object> = forwardRef(
-   (props, ref) => {
+interface EmojiStickerProps {
+   imageSize: number;
+}
+
+const EmojiSticker: React.ForwardRefExoticComponent<React.RefAttributes<EmojiStickerRef> & EmojiStickerProps> =
+   forwardRef(({ imageSize }, ref) => {
       const [stickerSource, setStickerSource] = useState<ImageSourcePropType | null>(null);
+
+      const scaleImage = useSharedValue(imageSize);
+      const translateX = useSharedValue(0);
+      const translateY = useSharedValue(0);
+
+      const containerStyle = useAnimatedStyle(() => ({
+         transform: [
+            {
+               translateX: translateX.value,
+            },
+            {
+               translateY: translateY.value,
+            },
+         ],
+      }));
+
+      const imageStyle = useAnimatedStyle(() => ({
+         height: withSpring(scaleImage.value),
+         width: withSpring(scaleImage.value),
+      }));
+
+      const doubleTap = useMemo(
+         () =>
+            Gesture.Tap()
+               .numberOfTaps(2)
+               .onStart(() => {
+                  if (scaleImage.value !== imageSize * 2) {
+                     scaleImage.value = scaleImage.value * 2;
+                  }
+               }),
+         []
+      );
+
+      const drag = useMemo(
+         () =>
+            Gesture.Pan().onChange(
+               (event) => ((translateX.value += event.changeX), (translateY.value += event.changeY))
+            ),
+         []
+      );
 
       useImperativeHandle(ref, () => ({ setStickerSource }), []);
 
       return (
          <>
             {stickerSource && (
-               <View style={{ top: -350 }}>
-                  <Image source={stickerSource} style={{ width: 40, height: 40 }} />
-               </View>
+               <GestureDetector gesture={drag}>
+                  <Animated.View style={[containerStyle, { top: -350 }]}>
+                     <GestureDetector gesture={doubleTap}>
+                        <Animated.Image
+                           resizeMode={"contain"}
+                           source={stickerSource}
+                           style={[imageStyle, { width: imageSize, height: imageSize }]}
+                        />
+                     </GestureDetector>
+                  </Animated.View>
+               </GestureDetector>
             )}
          </>
       );
-   }
-);
+   });
 
 const imageStyles = StyleSheet.create({
    image: {
@@ -68,7 +120,7 @@ const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageView
                source={selectedImage ? { uri: selectedImage } : require("./assets/images/background-image.png")}
                style={imageStyles.image}
             />
-            <EmojiSticker ref={emojiStickerRef} />
+            <EmojiSticker imageSize={40} ref={emojiStickerRef} />
          </View>
       );
    }
@@ -344,7 +396,7 @@ export default function App() {
    const imageViewerRef = useRef<ImageViewerRef>(null);
 
    return (
-      <View style={styles.container}>
+      <GestureHandlerRootView style={styles.container}>
          <ImageViewer ref={imageViewerRef} />
 
          <AppOption
@@ -352,6 +404,6 @@ export default function App() {
                imageViewerRef,
             }}
          />
-      </View>
+      </GestureHandlerRootView>
    );
 }
