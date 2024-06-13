@@ -5,7 +5,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
-import Button from "./assets/components/Button";
+import Button from "./components/Button";
 
 interface EmojiStickerRef {
    setStickerSource: React.Dispatch<React.SetStateAction<ImageSourcePropType | null>>;
