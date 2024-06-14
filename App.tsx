@@ -1,5 +1,5 @@
 import React, { useImperativeHandle, useCallback, forwardRef, useState, useRef, useMemo } from "react";
-import { StyleSheet, Image, View, ImageSourcePropType } from "react-native";
+import { StyleSheet, Image, View, ImageSourcePropType, Platform } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
@@ -7,6 +7,8 @@ import * as MediaLibrary from "expo-media-library";
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { captureRef } from "react-native-view-shot";
+
+import domtoimage from "dom-to-image";
 
 import ModalEmojiPicker, { ModalEmojiPickerRef } from "./components/ModalEmojiPicker";
 import Button from "./components/Button";
@@ -161,19 +163,44 @@ const AppOption: React.FC<AppOptionProps> = ({ externalRefs }) => {
       }
    }, []);
 
-   const onSaveImageAsync = useCallback(async () => {
-      try {
-         const localUri = await captureRef(externalRefs.imageViewerRef.current?.getImageRef()!, {
-            height: 440,
-            quality: 1,
-         });
+   const saveImageOnMobile = useCallback(async () => {
+      const localUri = await captureRef(externalRefs.imageViewerRef.current?.getImageRef()!, {
+         height: 440,
+         quality: 1,
+      });
 
-         await MediaLibrary.saveToLibraryAsync(localUri);
-         if (localUri) {
-            alert("Imagem salva com sucesso!");
+      await MediaLibrary.saveToLibraryAsync(localUri);
+      if (localUri) {
+         alert("Imagem salva com sucesso!");
+      }
+   }, []);
+
+   const saveImageOnWeb = useCallback(async () => {
+      const dataUrl = await domtoimage.toJpeg(externalRefs.imageViewerRef.current?.getImageRef()! as unknown as Node, {
+         quality: 0.95,
+         width: 320,
+         height: 440,
+      });
+
+      let link = document.createElement("a");
+      link.download = "sticker-smash.jpeg";
+      link.href = dataUrl;
+      link.click();
+   }, []);
+
+   const onSaveImageAsync = useCallback(async () => {
+      if (Platform.OS !== "web") {
+         try {
+            saveImageOnMobile();
+         } catch (e) {
+            console.log(e);
          }
-      } catch (e) {
-         console.log(e);
+      } else {
+         try {
+            saveImageOnWeb();
+         } catch (e) {
+            console.log(e);
+         }
       }
    }, []);
 
