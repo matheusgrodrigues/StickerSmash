@@ -1,10 +1,14 @@
 import React, { useImperativeHandle, useCallback, forwardRef, useState, useRef, useMemo } from "react";
-import { StyleSheet, Pressable, Image, Text, View, Modal, FlatList, Platform, ImageSourcePropType } from "react-native";
+import { StyleSheet, Image, View, ImageSourcePropType } from "react-native";
+
 import * as ImagePicker from "expo-image-picker";
-import { MaterialIcons } from "@expo/vector-icons";
+import * as MediaLibrary from "expo-media-library";
+
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { captureRef } from "react-native-view-shot";
 
+import ModalEmojiPicker, { ModalEmojiPickerRef } from "./components/ModalEmojiPicker";
 import Button from "./components/Button";
 
 interface EmojiStickerRef {
@@ -98,6 +102,7 @@ const imageViewerStyles = StyleSheet.create({
 interface ImageViewerRef {
    setSelectedImage: React.Dispatch<React.SetStateAction<string | null>>;
    setEmojiSticker: (source: ImageSourcePropType | null) => void;
+   getImageRef: () => View;
 }
 
 const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageViewerRef> & object> = forwardRef(
@@ -105,132 +110,33 @@ const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageView
       const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
       const emojiStickerRef = useRef<EmojiStickerRef | null>(null);
+      const imageRef = useRef<View>(null);
 
       useImperativeHandle(
          ref,
          () => ({
             setSelectedImage,
             setEmojiSticker: (source) => emojiStickerRef.current?.setStickerSource(source),
+            getImageRef: () => imageRef.current!,
          }),
          []
       );
 
       return (
          <View style={imageViewerStyles.container}>
-            <Image
-               source={selectedImage ? { uri: selectedImage } : require("./assets/images/background-image.png")}
-               style={imageStyles.image}
-            />
-            <EmojiSticker imageSize={40} ref={emojiStickerRef} />
+            <View ref={imageRef} collapsable={false}>
+               <Image
+                  source={selectedImage ? { uri: selectedImage } : require("./assets/images/background-image.png")}
+                  style={imageStyles.image}
+               />
+               <EmojiSticker imageSize={40} ref={emojiStickerRef} />
+            </View>
          </View>
       );
    }
 );
 
-const modalEmojiPickerStyles = StyleSheet.create({
-   modalContent: {
-      height: "25%",
-      width: "100%",
-      backgroundColor: "#25292e",
-      borderTopRightRadius: 18,
-      borderTopLeftRadius: 18,
-      position: "absolute",
-      bottom: 0,
-   },
-   titleContainer: {
-      height: "16%",
-      backgroundColor: "#464C55",
-      borderTopRightRadius: 10,
-      borderTopLeftRadius: 10,
-      paddingHorizontal: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-   },
-   title: {
-      color: "#fff",
-      fontSize: 16,
-   },
-
-   listContainer: {
-      borderTopRightRadius: 10,
-      borderTopLeftRadius: 10,
-      paddingHorizontal: 20,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-   },
-   image: {
-      width: 100,
-      height: 100,
-      marginRight: 20,
-   },
-});
-
-interface ModalEmojiPickerRef {
-   setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-interface ModalEmojiPickerProps extends Pick<AppOptionProps, "externalRefs"> {}
-
-const ModalEmojiPicker: React.ForwardRefExoticComponent<
-   React.RefAttributes<ModalEmojiPickerRef> & ModalEmojiPickerProps
-> = forwardRef(({ externalRefs }, ref) => {
-   const [isVisible, setIsVisible] = useState(false);
-
-   const emoji: ImageSourcePropType[] = useMemo(
-      () => [
-         require("./assets/images/emoji1.png"),
-         require("./assets/images/emoji2.png"),
-         require("./assets/images/emoji3.png"),
-         require("./assets/images/emoji4.png"),
-         require("./assets/images/emoji5.png"),
-         require("./assets/images/emoji6.png"),
-      ],
-      []
-   );
-
-   const onClose = useCallback(() => setIsVisible(false), []);
-
-   useImperativeHandle(ref, () => ({ setIsVisible }), []);
-
-   return (
-      <>
-         {isVisible && (
-            <Modal animationType="slide" transparent={true} visible={isVisible}>
-               <View style={modalEmojiPickerStyles.modalContent}>
-                  <View style={modalEmojiPickerStyles.titleContainer}>
-                     <Text style={modalEmojiPickerStyles.title}>Choose a sticker</Text>
-
-                     <Pressable onPress={onClose}>
-                        <MaterialIcons name="close" color="#fff" size={22} />
-                     </Pressable>
-                  </View>
-
-                  <FlatList
-                     showsHorizontalScrollIndicator={Platform.OS === "web"}
-                     contentContainerStyle={modalEmojiPickerStyles.listContainer}
-                     renderItem={({ item, index }) => (
-                        <Pressable
-                           onPress={() => {
-                              externalRefs.imageViewerRef.current?.setEmojiSticker(item);
-                              setIsVisible(false);
-                           }}
-                        >
-                           <Image source={item} key={index} style={modalEmojiPickerStyles.image} />
-                        </Pressable>
-                     )}
-                     horizontal
-                     data={emoji}
-                  />
-               </View>
-            </Modal>
-         )}
-      </>
-   );
-});
-
-interface AppOptionProps {
+export interface AppOptionProps {
    externalRefs: {
       imageViewerRef: React.RefObject<ImageViewerRef>;
    };
@@ -255,7 +161,21 @@ const AppOption: React.FC<AppOptionProps> = ({ externalRefs }) => {
       }
    }, []);
 
-   const onSaveImageAsync = useCallback(async () => alert("onSaveImageAsync"), []);
+   const onSaveImageAsync = useCallback(async () => {
+      try {
+         const localUri = await captureRef(externalRefs.imageViewerRef.current?.getImageRef()!, {
+            height: 440,
+            quality: 1,
+         });
+
+         await MediaLibrary.saveToLibraryAsync(localUri);
+         if (localUri) {
+            alert("Imagem salva com sucesso!");
+         }
+      } catch (e) {
+         console.log(e);
+      }
+   }, []);
 
    const onAddSticker = useCallback(async () => modalEmojiPicker.current?.setIsVisible(true), []);
 
@@ -309,7 +229,13 @@ const styles = StyleSheet.create({
 });
 
 export default function App() {
+   const [status, requestPermission] = MediaLibrary.usePermissions();
+
    const imageViewerRef = useRef<ImageViewerRef>(null);
+
+   if (status === null) {
+      requestPermission();
+   }
 
    return (
       <GestureHandlerRootView style={styles.container}>
