@@ -3,6 +3,7 @@ import { StyleSheet, Image, View, ImageSourcePropType, Platform } from "react-na
 
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
+import { StatusBar } from "expo-status-bar";
 
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -273,6 +274,8 @@ export default function App() {
                imageViewerRef,
             }}
          />
+
+         <StatusBar style="light" />
       </GestureHandlerRootView>
    );
 }
