@@ -7,7 +7,9 @@ import { StatusBar } from "expo-status-bar";
 
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { RootSiblingParent } from "react-native-root-siblings";
 import { captureRef } from "react-native-view-shot";
+import Toast from "react-native-root-toast";
 
 import domtoimage from "dom-to-image";
 
@@ -160,7 +162,11 @@ const AppOption: React.FC<AppOptionProps> = ({ externalRefs }) => {
          externalRefs.imageViewerRef.current?.setSelectedImage(result.assets[0].uri);
          setShowAppOptions(true);
       } else {
-         alert("Você não selecionou uma imagem!");
+         let toast = Toast.show("Você não selecionou uma imagem!", {
+            duration: Toast.durations.LONG,
+         });
+
+         setTimeout(() => Toast.hide(toast), 3000);
       }
    }, []);
 
@@ -172,7 +178,11 @@ const AppOption: React.FC<AppOptionProps> = ({ externalRefs }) => {
 
       await MediaLibrary.saveToLibraryAsync(localUri);
       if (localUri) {
-         alert("Imagem salva com sucesso!");
+         let toast = Toast.show("Imagem salva com sucesso!", {
+            duration: Toast.durations.LONG,
+         });
+
+         setTimeout(() => Toast.hide(toast), 3000);
       }
    }, []);
 
@@ -266,16 +276,18 @@ export default function App() {
    }
 
    return (
-      <GestureHandlerRootView style={styles.container}>
-         <ImageViewer ref={imageViewerRef} />
+      <RootSiblingParent>
+         <GestureHandlerRootView style={styles.container}>
+            <ImageViewer ref={imageViewerRef} />
 
-         <AppOption
-            externalRefs={{
-               imageViewerRef,
-            }}
-         />
+            <AppOption
+               externalRefs={{
+                  imageViewerRef,
+               }}
+            />
 
-         <StatusBar style="light" />
-      </GestureHandlerRootView>
+            <StatusBar style="light" />
+         </GestureHandlerRootView>
+      </RootSiblingParent>
    );
 }
