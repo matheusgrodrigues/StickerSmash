@@ -51,4 +51,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
          projectId: "875c38b9-2bff-421b-a9dd-2292d0a84aed",
       },
    },
+
+   plugins: ["expo-router"],
+
+   scheme: "your-app-scheme",
 });

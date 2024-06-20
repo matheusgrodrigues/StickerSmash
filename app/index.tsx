@@ -4,6 +4,7 @@ import { StyleSheet, Image, View, ImageSourcePropType, Platform } from "react-na
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import { StatusBar } from "expo-status-bar";
+import { Link } from "expo-router";
 
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -89,21 +90,6 @@ const EmojiSticker: React.ForwardRefExoticComponent<React.RefAttributes<EmojiSti
       );
    });
 
-const imageStyles = StyleSheet.create({
-   image: {
-      borderRadius: 18,
-      height: 440,
-      width: 320,
-   },
-});
-
-const imageViewerStyles = StyleSheet.create({
-   container: {
-      paddingTop: 58,
-      flex: 1,
-   },
-});
-
 interface ImageViewerRef {
    setSelectedImage: React.Dispatch<React.SetStateAction<string | null>>;
    setEmojiSticker: (source: ImageSourcePropType | null) => void;
@@ -128,11 +114,20 @@ const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageView
       );
 
       return (
-         <View style={imageViewerStyles.container}>
+         <View
+            style={{
+               paddingTop: 58,
+               flex: 1,
+            }}
+         >
             <View ref={imageRef} collapsable={false}>
                <Image
-                  source={selectedImage ? { uri: selectedImage } : require("./assets/images/background-image.png")}
-                  style={imageStyles.image}
+                  source={selectedImage ? { uri: selectedImage } : require("../assets/images/background-image.png")}
+                  style={{
+                     borderRadius: 18,
+                     height: 440,
+                     width: 320,
+                  }}
                />
                <EmojiSticker imageSize={40} ref={emojiStickerRef} />
             </View>
@@ -140,6 +135,15 @@ const ImageViewer: React.ForwardRefExoticComponent<React.RefAttributes<ImageView
       );
    }
 );
+
+const styles = StyleSheet.create({
+   container: {
+      backgroundColor: "#25292e",
+      justifyContent: "center",
+      alignItems: "center",
+      flex: 1,
+   },
+});
 
 export interface AppOptionProps {
    externalRefs: {
@@ -226,16 +230,23 @@ const AppOption: React.FC<AppOptionProps> = ({ externalRefs }) => {
    return (
       <>
          {showAppOption ? (
-            <View style={styles.optionsContainer}>
-               <View style={styles.optionsRow}>
-                  <Button onPress={onReset} theme="icon-button" label="Reset" icon="refresh" />
-                  <Button onPress={onAddSticker} theme="circle-button" />
-                  <Button onPress={onSaveImageAsync} theme="icon-button" label="Save" icon="save-alt" />
-               </View>
+            <View
+               style={{
+                  justifyContent: "center",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  columnGap: 60,
+                  position: "absolute",
+                  bottom: 80,
+               }}
+            >
+               <Button onPress={onReset} theme="icon-button" label="Reset" icon="refresh" />
+               <Button onPress={onAddSticker} theme="circle-button" icon="add" />
+               <Button onPress={onSaveImageAsync} theme="icon-button" label="Save" icon="save-alt" />
             </View>
          ) : (
             <View style={styles.container}>
-               <Button onPress={pickImageSync} theme={"primary"} label={"Selecione a foto"} />
+               <Button onPress={pickImageSync} theme={"primary"} label={"Selecione a foto"} icon="image" />
                <Button label={"Use esta foto"} />
             </View>
          )}
@@ -244,27 +255,6 @@ const AppOption: React.FC<AppOptionProps> = ({ externalRefs }) => {
       </>
    );
 };
-
-const styles = StyleSheet.create({
-   container: {
-      backgroundColor: "#25292e",
-      justifyContent: "center",
-      alignItems: "center",
-      flex: 1,
-   },
-   footerContainer: {
-      alignItems: "center",
-      flex: 1 / 3,
-   },
-   optionsContainer: {
-      position: "absolute",
-      bottom: 80,
-   },
-   optionsRow: {
-      alignItems: "center",
-      flexDirection: "row",
-   },
-});
 
 export default function App() {
    const [status, requestPermission] = MediaLibrary.usePermissions();
@@ -279,6 +269,12 @@ export default function App() {
       <RootSiblingParent>
          <GestureHandlerRootView style={styles.container}>
             <ImageViewer ref={imageViewerRef} />
+
+            <View>
+               <Link asChild href={"/home"}>
+                  <Button theme="primary" label="Ir para Home" />
+               </Link>
+            </View>
 
             <AppOption
                externalRefs={{
