@@ -1,14 +1,14 @@
 import { Link } from "expo-router";
 import { Text, View } from "react-native";
-import Button from "../components/Button";
+import Button from "./components/Button";
 
-export default function Settings() {
+export default function User() {
    return (
       <>
          <View>
-            <Text>Settings</Text>
+            <Text>Rota `/any`</Text>
 
-            <Link asChild href={"/"}>
+            <Link href="/" asChild>
                <Button theme="primary" label="Voltar" />
             </Link>
          </View>

@@ -6,7 +6,7 @@ export default function Settings() {
    return (
       <>
          <View>
-            <Text>Settings</Text>
+            <Text>[...Settings]</Text>
 
             <Link asChild href={"/"}>
                <Button theme="primary" label="Voltar" />

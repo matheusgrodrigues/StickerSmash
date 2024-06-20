@@ -272,7 +272,16 @@ export default function App() {
 
             <View>
                <Link asChild href={"/home"}>
-                  <Button theme="primary" label="Ir para Home" />
+                  <Button theme="primary" label="/Home" />
+               </Link>
+               <Link asChild href={"/any"}>
+                  <Button theme="primary" label="/any" />
+               </Link>
+               <Link asChild href={"/settings"}>
+                  <Button theme="primary" label="/Settings" />
+               </Link>
+               <Link asChild href={"/settings/matheus"}>
+                  <Button theme="primary" label="/Settings/[...id]" />
                </Link>
             </View>
 
