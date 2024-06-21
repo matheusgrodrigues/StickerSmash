@@ -4,7 +4,6 @@ import { StyleSheet, Image, View, ImageSourcePropType, Platform } from "react-na
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
 import { StatusBar } from "expo-status-bar";
-import { Link } from "expo-router";
 
 import { GestureHandlerRootView, GestureDetector, Gesture } from "react-native-gesture-handler";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
@@ -269,21 +268,6 @@ export default function App() {
       <RootSiblingParent>
          <GestureHandlerRootView style={styles.container}>
             <ImageViewer ref={imageViewerRef} />
-
-            <View>
-               <Link asChild href={"/home"}>
-                  <Button theme="primary" label="/Home" />
-               </Link>
-               <Link asChild href={"/any"}>
-                  <Button theme="primary" label="/any" />
-               </Link>
-               <Link asChild href={"/settings"}>
-                  <Button theme="primary" label="/Settings" />
-               </Link>
-               <Link asChild href={"/settings/matheus"}>
-                  <Button theme="primary" label="/Settings/[...id]" />
-               </Link>
-            </View>
 
             <AppOption
                externalRefs={{

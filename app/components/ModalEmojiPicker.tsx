@@ -2,7 +2,7 @@ import { useImperativeHandle, useCallback, forwardRef, useState, useMemo } from 
 import { ImageSourcePropType, FlatList, Platform, Pressable, Image, Modal, Text, View } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-import { AppOptionProps } from "../index";
+import { AppOptionProps } from "../..";
 
 export interface ModalEmojiPickerRef {
    setIsVisible: React.Dispatch<React.SetStateAction<boolean>>;
