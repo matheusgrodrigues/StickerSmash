@@ -1,5 +1,5 @@
 import React, { useImperativeHandle, useCallback, forwardRef, useState, useRef, useMemo } from "react";
-import { StyleSheet, Image, View, ImageSourcePropType, Platform } from "react-native";
+import { StyleSheet, Image, View, ImageSourcePropType, Platform, Text } from "react-native";
 
 import * as ImagePicker from "expo-image-picker";
 import * as MediaLibrary from "expo-media-library";
@@ -15,6 +15,7 @@ import domtoimage from "dom-to-image";
 
 import ModalEmojiPicker, { ModalEmojiPickerRef } from "./components/ModalEmojiPicker";
 import Button from "./components/Button";
+import { ErrorBoundaryProps, Link } from "expo-router";
 
 interface EmojiStickerRef {
    setStickerSource: React.Dispatch<React.SetStateAction<ImageSourcePropType | null>>;
@@ -268,6 +269,10 @@ export default function App() {
       <RootSiblingParent>
          <GestureHandlerRootView style={styles.container}>
             <ImageViewer ref={imageViewerRef} />
+
+            <Link href={"/homesd"} asChild>
+               <Button theme="primary" label="Home Page" />
+            </Link>
 
             <AppOption
                externalRefs={{
